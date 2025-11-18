@@ -16,7 +16,7 @@
 
     document.getElementById('checkPing').onclick = async () => {
         try {
-            const res = await fetch('http://localhost:8081/ping');
+            const res = await fetch('https://telegramapp-production.up.railway.app/ping');
             const text = await res.text();
             alert('Backend says: ' + text);
         } catch (err) {
