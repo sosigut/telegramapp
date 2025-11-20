@@ -1,6 +1,7 @@
 spring:
   datasource:
-    url: jdbc:${DATABASE_URL}
+    url: jdbc:postgresql://postgres:UwiUOreOefKFWDimKjNMkiqAQeQxUzHL@<PRIVATE_HOST>:5432/railway
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
