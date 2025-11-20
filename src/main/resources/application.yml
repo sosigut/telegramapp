@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/springboot
+    url: jdbc:postgresql://localhost:5432/tgapp
     username: postgres
     password: do6rblubatman
   jpa:
