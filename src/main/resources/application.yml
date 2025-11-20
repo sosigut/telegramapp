@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/tgapp
-    username: postgres
-    password: do6rblubatman
+    url: ${DATABASE_URL}
+    username:
+    password:
   jpa:
     hibernate:
       ddl-auto: update
