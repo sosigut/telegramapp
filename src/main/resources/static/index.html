@@ -17,15 +17,15 @@
 
     <div class="summary-card">
         <div class="summary-row">
-            <span>Balance</span>
+            <span>Ваш баланс: </span>
             <span id="sum-balance">0</span>
         </div>
         <div class="summary-row">
-            <span>Income</span>
+            <span>Заработали: </span>
             <span id="sum-income">0</span>
         </div>
         <div class="summary-row">
-            <span>Expenses</span>
+            <span>Потратили: </span>
             <span id="sum-expense">0</span>
         </div>
     </div>
@@ -35,56 +35,58 @@
         <canvas id="expenseChart"></canvas>
     </div>
 
-    <h2 class="title">Add Transaction</h2>
+    <h2 class="title">Добавить транзакцию</h2>
 
     <div class="card">
-        <label class="label">Type</label>
+        <label class="label">Тип операции</label>
         <select id="type" class="input">
-            <option value="Income">Income</option>
-            <option value="Expense">Expense</option>
+            <option value="Income">Заработал(а)</option>
+            <option value="Expense">Потратил(а)</option>
         </select>
 
-        <label class="label">Category</label>
+        <label class="label">Категория</label>
         <select id="category" class="input">
-            <option>Salary</option>
-            <option>Food</option>
-            <option>Transport</option>
-            <option>Entertainment</option>
-            <option>Other</option>
+            <option>Зарплата</option>
+            <option>Еда</option>
+            <option>Транспорт</option>
+            <option>Шоппинг</option>
+            <option>Развлечения</option>
+            <option>Остальное</option>
         </select>
 
-        <label class="label">Amount</label>
+        <label class="label">Сумма</label>
         <input id="amount" type="number" class="input" placeholder="Enter amount">
 
-        <label class="label">Description</label>
+        <label class="label">Описание</label>
         <input id="description" class="input" placeholder="Description">
 
-        <button id="addBtn" class="btn-primary">Add</button>
+        <button id="addBtn" class="btn-primary">Добавить</button>
     </div>
 
-    <h2 class="title">Search & Filter</h2>
+    <h2 class="title">Поиск & Фильтрация</h2>
 
     <div class="card">
-        <label>Category:</label>
+        <label>Категория: </label>
         <select id="filter-category" class="input">
-            <option value="">All</option>
-            <option>Salary</option>
-            <option>Food</option>
-            <option>Transport</option>
-            <option>Entertainment</option>
-            <option>Other</option>
+            <option value="">Все</option>
+            <option>Зарплата</option>
+            <option>Еда</option>
+            <option>Транспорт</option>
+            <option>Шоппинг</option>
+            <option>Развлечения</option>
+            <option>Остальное</option>
         </select>
 
-        <label>Date from:</label>
+        <label>Дата от:</label>
         <input id="filter-start" class="input" type="date">
 
-        <label>Date to:</label>
+        <label>Дата до:</label>
         <input id="filter-end" class="input" type="date">
 
-        <button id="search-btn" class="btn">Search</button>
+        <button id="search-btn" class="btn">Поиск</button>
     </div>
 
-    <h2 class="title">Transactions</h2>
+    <h2 class="title">Транзакции</h2>
 
     <div id="transactions"></div>
 
