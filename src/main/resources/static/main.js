@@ -1,4 +1,7 @@
 const tg = window.Telegram.WebApp;
+const backendUrl = "https://telegramapp-production.up.railway.app";
+const now = new Date();
+const formattedDate = now.toLocaleString();
 
 tg.ready();
 tg.expand();
@@ -15,6 +18,7 @@ async function addTransaction() {
     const category = document.getElementById("category").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const description = document.getElementById("description").value;
+    const date = formattedDate;
 
     if (!amount) {
         tg.showAlert("Enter amount!");
@@ -26,7 +30,8 @@ async function addTransaction() {
         type,
         category,
         amount,
-        description
+        description,
+        date
     };
 
     await fetch(API, {
@@ -38,7 +43,7 @@ async function addTransaction() {
     document.getElementById("amount").value = "";
     document.getElementById("description").value = "";
 
-    loadTransactions();
+    await loadTransactions();
 }
 
 function drawExpenseChart(categoryTotals) {
@@ -112,6 +117,33 @@ async function loadTransactions() {
     drawExpenseChart(categoryTotals);
 }
 
+function renderTransactions(transactions) {
+    const container = document.getElementById("transactions");
+    container.innerHTML = ""; // очистка списка
+    transactions.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "transaction";
+        div.innerHTML = `
+            <span>${t.type}</span> - 
+            <span>${t.amount} ₽</span> - 
+            <span>${t.category}</span> - 
+            <span>${t.description || ""}</span> - 
+            <span>${new Date(t.date).toLocaleString()}</span>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function buildExpenseStats(transactions) {
+    const stats = {};
+    transactions.forEach(t => {
+        if (t.type === "expense") {
+            stats[t.category] = (stats[t.category] || 0) + Number(t.amount);
+        }
+    });
+    return stats;
+}
+
 document.getElementById("search-btn").onclick = async () => {
     let category = document.getElementById("filter-category").value;
     let start = document.getElementById("filter-start").value;
@@ -137,7 +169,8 @@ document.getElementById("search-btn").onclick = async () => {
 
 async function deleteTransaction(id) {
     await fetch(`${API}/${id}`, { method: "DELETE" });
-    loadTransactions();
+    await loadTransactions();
 }
 
 let expenseChart = null;
+
