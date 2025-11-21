@@ -112,6 +112,29 @@ async function loadTransactions() {
     drawExpenseChart(categoryTotals);
 }
 
+document.getElementById("search-btn").onclick = async () => {
+    let category = document.getElementById("filter-category").value;
+    let start = document.getElementById("filter-start").value;
+    let end = document.getElementById("filter-end").value;
+
+    let url = backendUrl + "/api/transaction/search?";
+
+    if (category) url += "category=" + encodeURIComponent(category) + "&";
+    if (start) url += "start=" + start + "&";
+    if (end) url += "end=" + end;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        renderTransactions(data);
+        drawExpenseChart(buildExpenseStats(data));
+    } catch (e) {
+        tg.showAlert("Search error: " + e);
+    }
+};
+
+
 async function deleteTransaction(id) {
     await fetch(`${API}/${id}`, { method: "DELETE" });
     loadTransactions();
