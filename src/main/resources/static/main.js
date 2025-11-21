@@ -95,12 +95,12 @@ async function loadTransactions() {
         card.className = "transaction-card";
 
         card.innerHTML = `
-            <div class="transaction-title">${t.type.toUpperCase()} | ${t.category}</div>
-            <div>Amount: <b>${t.amount}</b></div>
-            <div class="transaction-desc">${t.description ?? ""}</div>
-            <button class="btn-danger" onclick="deleteTransaction(${t.id})">Delete</button>
-        `;
-
+        <div class="transaction-title">${t.type.toUpperCase()} | ${t.category}</div>
+        <div>Amount: <b>${t.amount}</b></div>
+        <div class="transaction-desc">${t.description ?? ""}</div>
+        <div class="transaction-date">${new Date(t.date).toLocaleString()}</div>
+        <button class="btn-danger" onclick="deleteTransaction(${t.id})">Delete</button>
+    `;
         container.appendChild(card);
     });
 
