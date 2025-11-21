@@ -116,3 +116,10 @@ body {
 .summary-row span:last-child {
     font-weight: bold;
 }
+
+.chart-card {
+    background: var(--card-bg, #1f1f1f);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}

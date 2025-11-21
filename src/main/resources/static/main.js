@@ -1,86 +1,109 @@
 const tg = window.Telegram.WebApp;
-
-tg.ready();
 tg.expand();
 
-// BASE URL
-const API = "https://telegramapp-production.up.railway.app/api/transaction";
+const backend = "https://telegramapp-production.up.railway.app";
 
-document.getElementById("addBtn").onclick = addTransaction;
+// UI elements
+const balanceEl = document.getElementById("balance-amount");
+const txList = document.getElementById("transactions");
 
-loadTransactions();
+// --------------------- LOAD ALL ---------------------
+async function loadTransactions() {
+    const res = await fetch(backend + "/api/transaction");
+    const data = await res.json();
 
-async function addTransaction() {
+    renderTransactions(data);
+    updateBalance(data);
+}
+
+function updateBalance(list) {
+    let income = 0, expense = 0;
+
+    list.forEach(t => {
+        if (t.type === "income") income += t.amount;
+        else expense += t.amount;
+    });
+
+    const balance = income - expense;
+    balanceEl.textContent = balance + " ₽";
+}
+
+// --------------------- RENDER ---------------------
+function renderTransactions(list) {
+    txList.innerHTML = "";
+
+    if (list.length === 0) {
+        txList.innerHTML = `<div class="empty">No transactions</div>`;
+        return;
+    }
+
+    list.forEach(t => {
+        const item = document.createElement("div");
+        item.className = "transaction";
+
+        item.innerHTML = `
+            <div class="tx-left">
+                <div class="tx-cat">${t.category}</div>
+                <div class="tx-desc">${t.description ?? ""}</div>
+                <div class="tx-date">${t.date.replace("T", " ")}</div>
+            </div>
+            <div class="tx-amount ${t.type}">
+                ${t.type === "income" ? "+" : "-"}${t.amount} ₽
+            </div>
+        `;
+
+        txList.appendChild(item);
+    });
+}
+
+// --------------------- ADD ---------------------
+document.getElementById("add-btn").onclick = async () => {
     const type = document.getElementById("type").value;
+    const amount = Number(document.getElementById("amount").value);
     const category = document.getElementById("category").value;
-    const amount = parseFloat(document.getElementById("amount").value);
     const description = document.getElementById("description").value;
 
-    if (!amount) {
-        tg.showAlert("Enter amount!");
+    if (!amount || amount <= 0) {
+        tg.showAlert("Amount must be greater than 0");
         return;
     }
 
     const body = {
         id: Date.now(),
         type,
-        category,
         amount,
+        category,
         description
     };
 
-    await fetch(API, {
+    await fetch(backend + "/api/transaction", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(body)
     });
 
-    document.getElementById("amount").value = "";
-    document.getElementById("description").value = "";
-
+    tg.showAlert("Added!");
     loadTransactions();
-}
+};
 
-async function loadTransactions() {
-    const res = await fetch(API);
+// --------------------- SEARCH ---------------------
+document.getElementById("search-btn").onclick = async () => {
+    const category = document.getElementById("filter-category").value;
+    const start = document.getElementById("filter-start").value;
+    const end = document.getElementById("filter-end").value;
+
+    let url = backend + "/api/transaction/search?";
+
+    if (category) url += "category=" + category + "&";
+    if (start) url += "start=" + start + "&";
+    if (end) url += "end=" + end;
+
+    const res = await fetch(url);
     const data = await res.json();
 
-    // Calculate summary
-    let income = 0;
-    let expense = 0;
+    renderTransactions(data);
+    updateBalance(data);
+};
 
-    data.forEach(t => {
-        if (t.type === "Income") income += t.amount;
-        else expense += t.amount;
-    });
-
-    const balance = income - expense;
-
-    // Update UI
-    document.getElementById("sum-balance").innerText = balance.toFixed(2);
-    document.getElementById("sum-income").innerText = income.toFixed(2);
-    document.getElementById("sum-expense").innerText = expense.toFixed(2);
-
-    // Render transactions
-    const container = document.getElementById("transactions");
-    container.innerHTML = "";
-
-    data.forEach(t => {
-        const card = document.createElement("div");
-        card.className = "transaction-card";
-
-        card.innerHTML = `
-            <div class="transaction-title">${t.type.toUpperCase()} | ${t.category}</div>
-            <div>Amount: <b>${t.amount}</b></div>
-            <div class="transaction-desc">${t.description ?? ""}</div>
-            <button class="btn-danger" onclick="deleteTransaction(${t.id})">Delete</button>
-        `;
-
-        container.appendChild(card);
-    });
-}
-
-async function deleteTransaction(id) {
-    await fetch(`${API}/${id}`, { method: "DELETE" });
-    loadTransactions();
-}
+// Start
+loadTransactions();
