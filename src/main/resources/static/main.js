@@ -117,17 +117,20 @@ async function loadTransactions() {
 
 function renderTransactions(transactions) {
     const container = document.getElementById("transactions");
-    container.innerHTML = ""; // очистка списка
+    container.innerHTML = ""; // очищаем список
+
     transactions.forEach(t => {
         const div = document.createElement("div");
-        div.className = "transaction";
+        div.className = "transaction-card";
+
         div.innerHTML = `
-            <span>${t.type}</span> - 
-            <span>${t.amount} ₽</span> - 
-            <span>${t.category}</span> - 
-            <span>${t.description || ""}</span> - 
-            <span>${new Date(t.date).toLocaleString()}</span>
-        `;
+        <div class="transaction-title">${t.type.toUpperCase()} | ${t.category}</div>
+        <div>Amount: <b>${t.amount}</b></div>
+        <div class="transaction-desc">${t.description ?? ""}</div>
+        <div class="transaction-date">${new Date(t.date).toLocaleString()}</div>
+        <button class="btn-danger" onclick="deleteTransaction(${t.id})">Delete</button>
+    `;
+
         container.appendChild(div);
     });
 }
@@ -143,9 +146,9 @@ function buildExpenseStats(transactions) {
 }
 
 document.getElementById("search-btn").onclick = async () => {
-    let category = document.getElementById("filter-category").value;
-    let start = document.getElementById("filter-start").value;
-    let end = document.getElementById("filter-end").value;
+    const category = document.getElementById("filter-category").value;
+    const start = document.getElementById("filter-start").value;
+    const end = document.getElementById("filter-end").value;
 
     let url = backendUrl + "/api/transaction/search?";
 
@@ -157,12 +160,20 @@ document.getElementById("search-btn").onclick = async () => {
         const res = await fetch(url);
         const data = await res.json();
 
-        renderTransactions(data);
-        drawExpenseChart(buildExpenseStats(data));
+        // Проверяем, что data массив
+        const transactions = Array.isArray(data) ? data : [];
+
+        // Если ничего нет, показываем сообщение
+        if (transactions.length === 0) {
+            tg.showAlert("No transactions found for the given filter");
+        }
+
+        renderTransactions(transactions);
+        drawExpenseChart(buildExpenseStats(transactions));
     } catch (e) {
         tg.showAlert("Search error: " + e);
     }
-};
+}
 
 
 async function deleteTransaction(id) {
