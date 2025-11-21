@@ -18,27 +18,25 @@ async function addTransaction() {
     const category = document.getElementById("category").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const description = document.getElementById("description").value;
-    const date = formattedDate;
+    const date = new Date().toISOString(); // ISO формат
 
     if (!amount) {
         tg.showAlert("Enter amount!");
         return;
     }
 
-    const body = {
-        id: Date.now(),
-        type,
-        category,
-        amount,
-        description,
-        date
-    };
+    const body = { type, category, amount, description, date };
 
-    await fetch(API, {
+    const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
     });
+
+    if (!res.ok) {
+        tg.showAlert("Failed to add transaction: " + res.statusText);
+        return;
+    }
 
     document.getElementById("amount").value = "";
     document.getElementById("description").value = "";
