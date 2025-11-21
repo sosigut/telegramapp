@@ -1,109 +1,120 @@
 const tg = window.Telegram.WebApp;
+
+tg.ready();
 tg.expand();
 
-const backend = "https://telegramapp-production.up.railway.app";
+// BASE URL
+const API = "https://telegramapp-production.up.railway.app/api/transaction";
 
-// UI elements
-const balanceEl = document.getElementById("balance-amount");
-const txList = document.getElementById("transactions");
+document.getElementById("addBtn").onclick = addTransaction;
 
-// --------------------- LOAD ALL ---------------------
-async function loadTransactions() {
-    const res = await fetch(backend + "/api/transaction");
-    const data = await res.json();
+loadTransactions();
 
-    renderTransactions(data);
-    updateBalance(data);
-}
-
-function updateBalance(list) {
-    let income = 0, expense = 0;
-
-    list.forEach(t => {
-        if (t.type === "income") income += t.amount;
-        else expense += t.amount;
-    });
-
-    const balance = income - expense;
-    balanceEl.textContent = balance + " ₽";
-}
-
-// --------------------- RENDER ---------------------
-function renderTransactions(list) {
-    txList.innerHTML = "";
-
-    if (list.length === 0) {
-        txList.innerHTML = `<div class="empty">No transactions</div>`;
-        return;
-    }
-
-    list.forEach(t => {
-        const item = document.createElement("div");
-        item.className = "transaction";
-
-        item.innerHTML = `
-            <div class="tx-left">
-                <div class="tx-cat">${t.category}</div>
-                <div class="tx-desc">${t.description ?? ""}</div>
-                <div class="tx-date">${t.date.replace("T", " ")}</div>
-            </div>
-            <div class="tx-amount ${t.type}">
-                ${t.type === "income" ? "+" : "-"}${t.amount} ₽
-            </div>
-        `;
-
-        txList.appendChild(item);
-    });
-}
-
-// --------------------- ADD ---------------------
-document.getElementById("add-btn").onclick = async () => {
+async function addTransaction() {
     const type = document.getElementById("type").value;
-    const amount = Number(document.getElementById("amount").value);
     const category = document.getElementById("category").value;
+    const amount = parseFloat(document.getElementById("amount").value);
     const description = document.getElementById("description").value;
 
-    if (!amount || amount <= 0) {
-        tg.showAlert("Amount must be greater than 0");
+    if (!amount) {
+        tg.showAlert("Enter amount!");
         return;
     }
 
     const body = {
         id: Date.now(),
         type,
-        amount,
         category,
+        amount,
         description
     };
 
-    await fetch(backend + "/api/transaction", {
+    await fetch(API, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
     });
 
-    tg.showAlert("Added!");
+    document.getElementById("amount").value = "";
+    document.getElementById("description").value = "";
+
     loadTransactions();
-};
+}
 
-// --------------------- SEARCH ---------------------
-document.getElementById("search-btn").onclick = async () => {
-    const category = document.getElementById("filter-category").value;
-    const start = document.getElementById("filter-start").value;
-    const end = document.getElementById("filter-end").value;
+function drawExpenseChart(categoryTotals) {
+    const ctx = document.getElementById('expenseChart').getContext('2d');
 
-    let url = backend + "/api/transaction/search?";
+    if (expenseChart !== null) {
+        expenseChart.destroy();
+    }
 
-    if (category) url += "category=" + category + "&";
-    if (start) url += "start=" + start + "&";
-    if (end) url += "end=" + end;
+    expenseChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(categoryTotals),
+            datasets: [{
+                data: Object.values(categoryTotals),
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
 
-    const res = await fetch(url);
+async function loadTransactions() {
+    const res = await fetch(API);
     const data = await res.json();
 
-    renderTransactions(data);
-    updateBalance(data);
-};
+    // Calculate summary
+    let income = 0;
+    let expense = 0;
 
-// Start
-loadTransactions();
+    data.forEach(t => {
+        if (t.type === "Income") income += t.amount;
+        else expense += t.amount;
+    });
+
+    const balance = income - expense;
+
+    // Update UI
+    document.getElementById("sum-balance").innerText = balance.toFixed(2);
+    document.getElementById("sum-income").innerText = income.toFixed(2);
+    document.getElementById("sum-expense").innerText = expense.toFixed(2);
+
+    // Render transactions
+    const container = document.getElementById("transactions");
+    container.innerHTML = "";
+
+    data.forEach(t => {
+        const card = document.createElement("div");
+        card.className = "transaction-card";
+
+        card.innerHTML = `
+            <div class="transaction-title">${t.type.toUpperCase()} | ${t.category}</div>
+            <div>Amount: <b>${t.amount}</b></div>
+            <div class="transaction-desc">${t.description ?? ""}</div>
+            <button class="btn-danger" onclick="deleteTransaction(${t.id})">Delete</button>
+        `;
+
+        container.appendChild(card);
+    });
+
+    let categoryTotals = {};
+
+    data.forEach(t => {
+        if (t.type === "Expense") {
+            categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+        }
+    });
+
+    drawExpenseChart(categoryTotals);
+}
+
+async function deleteTransaction(id) {
+    await fetch(`${API}/${id}`, { method: "DELETE" });
+    loadTransactions();
+}
+
+let expenseChart = null;

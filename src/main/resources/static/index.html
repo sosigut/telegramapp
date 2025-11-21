@@ -2,81 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Finance Mini App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Finance Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="stylesheet" href="style.css">
 
-    <!-- Telegram API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-
 <body>
 
 <div class="container">
 
-    <h1 class="app-title">Finance Tracker</h1>
+    <h2 class="title">Summary</h2>
 
-    <!-- BALANCE -->
-    <div class="card balance-card">
-        <h2>Balance</h2>
-        <div id="balance-amount" class="balance-value">0 ₽</div>
+    <div class="summary-card">
+        <div class="summary-row">
+            <span>Balance</span>
+            <span id="sum-balance">0</span>
+        </div>
+        <div class="summary-row">
+            <span>Income</span>
+            <span id="sum-income">0</span>
+        </div>
+        <div class="summary-row">
+            <span>Expenses</span>
+            <span id="sum-expense">0</span>
+        </div>
     </div>
 
-    <!-- ADD TRANSACTION -->
+    <h2 class="title">Expenses Chart</h2>
+    <div class="chart-card">
+        <canvas id="expenseChart"></canvas>
+    </div>
+
     <h2 class="title">Add Transaction</h2>
+
     <div class="card">
-        <label>Type:</label>
+        <label class="label">Type</label>
         <select id="type" class="input">
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
         </select>
 
-        <label>Amount:</label>
-        <input id="amount" type="number" class="input" placeholder="1000">
-
-        <label>Category:</label>
+        <label class="label">Category</label>
         <select id="category" class="input">
-            <option value="Food">Food</option>
-            <option value="Transport">Transport</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Other">Other</option>
+            <option>Salary</option>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Entertainment</option>
+            <option>Other</option>
         </select>
 
-        <label>Description:</label>
-        <input id="description" type="text" class="input" placeholder="Optional">
+        <label class="label">Amount</label>
+        <input id="amount" type="number" class="input" placeholder="Enter amount">
 
-        <button id="add-btn" class="btn">Add</button>
+        <label class="label">Description</label>
+        <input id="description" class="input" placeholder="Description">
+
+        <button id="addBtn" class="btn-primary">Add</button>
     </div>
 
-    <!-- SEARCH + FILTER -->
-    <h2 class="title">Search & Filter</h2>
-    <div class="card">
-        <label>Category:</label>
-        <select id="filter-category" class="input">
-            <option value="">All</option>
-            <option value="Food">Food</option>
-            <option value="Transport">Transport</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Other">Other</option>
-        </select>
-
-        <label>Date from:</label>
-        <input id="filter-start" class="input" type="date">
-
-        <label>Date to:</label>
-        <input id="filter-end" class="input" type="date">
-
-        <button id="search-btn" class="btn">Search</button>
-    </div>
-
-    <!-- TRANSACTION LIST -->
     <h2 class="title">Transactions</h2>
+
     <div id="transactions"></div>
 
 </div>
 
+<script src="main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
