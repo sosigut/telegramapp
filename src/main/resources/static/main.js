@@ -146,9 +146,12 @@ function buildExpenseStats(transactions) {
 }
 
 document.getElementById("search-btn").onclick = async () => {
-    const category = document.getElementById("filter-category").value;
+    let category = document.getElementById("filter-category").value;
     const start = document.getElementById("filter-start").value;
     const end = document.getElementById("filter-end").value;
+
+// Если выбран "All", category = null
+    if (category === "") category = null;
 
     let url = backendUrl + "/api/transaction/search?";
 
@@ -160,10 +163,9 @@ document.getElementById("search-btn").onclick = async () => {
         const res = await fetch(url);
         const data = await res.json();
 
-        // Проверяем, что data массив
+        // Гарантируем, что data массив
         const transactions = Array.isArray(data) ? data : [];
 
-        // Если ничего нет, показываем сообщение
         if (transactions.length === 0) {
             tg.showAlert("No transactions found for the given filter");
         }
@@ -173,6 +175,7 @@ document.getElementById("search-btn").onclick = async () => {
     } catch (e) {
         tg.showAlert("Search error: " + e);
     }
+
 }
 
 
