@@ -45,6 +45,23 @@ async function loadTransactions() {
     const res = await fetch(API);
     const data = await res.json();
 
+    // Calculate summary
+    let income = 0;
+    let expense = 0;
+
+    data.forEach(t => {
+        if (t.type === "Income") income += t.amount;
+        else expense += t.amount;
+    });
+
+    const balance = income - expense;
+
+    // Update UI
+    document.getElementById("sum-balance").innerText = balance.toFixed(2);
+    document.getElementById("sum-income").innerText = income.toFixed(2);
+    document.getElementById("sum-expense").innerText = expense.toFixed(2);
+
+    // Render transactions
     const container = document.getElementById("transactions");
     container.innerHTML = "";
 

@@ -38,6 +38,7 @@ body {
 }
 
 .label {
+    width: 95%;
     font-size: 13px;
     color: var(--text-light);
     margin: 6px 0 4px;
@@ -95,4 +96,23 @@ body {
     margin-top: 4px;
     color: var(--text-light);
     font-size: 13px;
+}
+
+.summary-card {
+    background: var(--card-bg);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 6px 0;
+    font-size: 16px;
+}
+
+.summary-row span:last-child {
+    font-weight: bold;
 }
