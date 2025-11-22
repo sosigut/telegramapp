@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     @Query("SELECT t FROM Transaction t " +
-            "WHERE (:category IS NULL OR LOWER(t.category) = LOWER(:category)) " +
+            "WHERE (:category IS NULL OR LOWER(t.category) LIKE LOWER(CONCAT('%', :category, '%'))) " +
             "AND (:start IS NULL OR t.date >= :start) " +
             "AND (:end IS NULL OR t.date <= :end) " +
             "ORDER BY t.date DESC")

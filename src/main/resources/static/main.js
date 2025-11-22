@@ -155,7 +155,6 @@ document.getElementById("search-btn").onclick = async () => {
     const start = document.getElementById("filter-start").value;
     const end = document.getElementById("filter-end").value;
 
-    // Для отладки
     console.log("Search params:", { category, start, end });
 
     let url = `${API}/search?`;
@@ -163,7 +162,8 @@ document.getElementById("search-btn").onclick = async () => {
     const params = new URLSearchParams();
 
     if (category && category !== "Все") {
-        params.append('category', category);
+        // Правильное кодирование для кириллицы
+        params.append('category', encodeURIComponent(category));
     }
     if (start) {
         params.append('start', start);
@@ -173,9 +173,9 @@ document.getElementById("search-btn").onclick = async () => {
     }
 
     url += params.toString();
+    console.log("Final URL:", url);
 
     try {
-        console.log("Fetching URL:", url);
         const res = await fetch(url);
 
         if (!res.ok) {
@@ -183,21 +183,21 @@ document.getElementById("search-btn").onclick = async () => {
         }
 
         const data = await res.json();
-        console.log("Received data:", data);
+        console.log("Found transactions:", data);
 
         const transactions = Array.isArray(data) ? data : [];
 
         if (transactions.length === 0) {
-            tg.showAlert("No transactions found for the given filter");
+            tg.showAlert("Транзакции по заданным фильтрам не найдены");
         } else {
-            tg.showAlert(`Found ${transactions.length} transaction(s)`);
+            tg.showAlert(`Найдено ${transactions.length} транзакций`);
         }
 
         renderTransactions(transactions);
         drawExpenseChart(buildExpenseStats(transactions));
     } catch (e) {
         console.error("Search error:", e);
-        tg.showAlert("Search error: " + e.message);
+        tg.showAlert("Ошибка поиска: " + e.message);
     }
 }
 

@@ -5,6 +5,8 @@ import com.example.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,14 +41,22 @@ public class TransactionController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end
     ) {
-        // Логируем параметры для отладки
-        System.out.println("Search params - category: " + category + ", start: " + start + ", end: " + end);
+        // Декодируем категорию если она закодирована
+        if (category != null) {
+            try {
+                category = URLDecoder.decode(category, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        System.out.println("Decoded search params - category: '" + category + "', start: " + start + ", end: " + end);
 
         LocalDateTime startDate = (start != null) ? start.atStartOfDay() : null;
         LocalDateTime endDate = (end != null) ? end.atTime(23, 59, 59) : null;
 
         // "Все" → null
-        if (category != null && category.trim().equalsIgnoreCase("Все")) {
+        if (category != null && (category.trim().equalsIgnoreCase("Все") || category.trim().equalsIgnoreCase("All"))) {
             category = null;
         }
 
