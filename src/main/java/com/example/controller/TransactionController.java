@@ -19,6 +19,7 @@ public class TransactionController {
 
     @PostMapping
     public Transaction add(@RequestBody Transaction t){
+        t.setDate(LocalDateTime.now());
         return transactionRepository.save(t);
     }
 

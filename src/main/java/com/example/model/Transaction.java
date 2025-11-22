@@ -24,5 +24,5 @@ public class Transaction {
     private Double amount;
     private String category;
     private String description;
-    private LocalDateTime date = LocalDateTime.now();
+    private LocalDateTime date;
 }

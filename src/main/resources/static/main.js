@@ -12,25 +12,18 @@ document.getElementById("addBtn").onclick = addTransaction;
 
 loadTransactions();
 
-Date.prototype.toLocalISOString = function() {
-    const tzoffset = this.getTimezoneOffset() * 60000;
-    return new Date(this - tzoffset).toISOString().slice(0, 19);
-};
-
-
 async function addTransaction() {
     const type = document.getElementById("type").value;
     const category = document.getElementById("category").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const description = document.getElementById("description").value;
-    const date = new Date().toLocalISOString();
 
     if (!amount) {
         tg.showAlert("Enter amount!");
         return;
     }
 
-    const body = { type, category, amount, description, date };
+    const body = { type, category, amount, description};
 
     const res = await fetch(API, {
         method: "POST",
