@@ -11,8 +11,9 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     @Query("SELECT t FROM Transaction t " +
             "WHERE (:category IS NULL OR LOWER(t.category) = LOWER(:category)) " +
-            "AND (:start IS NULL OR t.date >= :start) " +
-            "AND (:end IS NULL OR t.date <= :end)")
+            "AND (:start IS NULL OR DATE(t.date) >= DATE(:start)) " +
+            "AND (:end IS NULL OR DATE(t.date) <= DATE(:end))")
+
     List<Transaction> search(
             @Param("category") String category,
             @Param("start") LocalDateTime start,

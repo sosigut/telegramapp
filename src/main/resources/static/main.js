@@ -1,7 +1,6 @@
 const tg = window.Telegram.WebApp;
 const backendUrl = "https://telegramapp-production.up.railway.app";
 const now = new Date();
-const formattedDate = now.toLocaleString();
 
 tg.ready();
 tg.expand();
@@ -13,12 +12,18 @@ document.getElementById("addBtn").onclick = addTransaction;
 
 loadTransactions();
 
+Date.prototype.toLocalISOString = function() {
+    const tzoffset = this.getTimezoneOffset() * 60000;
+    return new Date(this - tzoffset).toISOString().slice(0, 19);
+};
+
+
 async function addTransaction() {
     const type = document.getElementById("type").value;
     const category = document.getElementById("category").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const description = document.getElementById("description").value;
-    const date = new Date().toISOString(); // ISO формат
+    const date = new Date().toLocalISOString();
 
     if (!amount) {
         tg.showAlert("Enter amount!");
@@ -138,7 +143,7 @@ function renderTransactions(transactions) {
 function buildExpenseStats(transactions) {
     const stats = {};
     transactions.forEach(t => {
-        if (t.type === "expense") {
+        if (t.type === "Expense") {
             stats[t.category] = (stats[t.category] || 0) + Number(t.amount);
         }
     });
