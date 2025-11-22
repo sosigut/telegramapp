@@ -5,14 +5,10 @@ import com.example.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.criteria.Predicate;
-import java.util.ArrayList;
 import java.util.List;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/transaction")
@@ -22,14 +18,15 @@ public class TransactionController {
     private final TransactionRepository transactionRepository;
 
     @PostMapping
-    public Transaction add(@RequestBody Transaction t){
+    public Transaction add(@RequestBody Transaction t, @RequestHeader("X-User-Id") Long userId){
+        t.setUserId(userId);
         t.setDate(LocalDateTime.now());
         return transactionRepository.save(t);
     }
 
     @GetMapping
-    public List<Transaction> getAll(){
-        return transactionRepository.findAll();
+    public List<Transaction> getAll(@RequestHeader("X-User-Id") Long userId){
+        return transactionRepository.findByUserId(userId);
     }
 
     @DeleteMapping("/{id}")
@@ -39,6 +36,7 @@ public class TransactionController {
 
     @GetMapping("/search")
     public List<Transaction> search(
+            @RequestHeader("X-User-Id") Long userId,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
@@ -53,7 +51,7 @@ public class TransactionController {
             category = null;
         }
 
-        List<Transaction> result = transactionRepository.search(category, startDate, endDate);
+        List<Transaction> result = transactionRepository.search(userId ,category, startDate, endDate);
         System.out.println("Found transactions: " + result.size());
         return result;
     }
