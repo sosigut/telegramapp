@@ -4,91 +4,148 @@
     <meta charset="UTF-8">
     <title>Finance Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="stylesheet" href="style.css">
-
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
 <div class="container">
 
-    <h2 class="title">Summary</h2>
+    <!-- Вкладки -->
+    <div class="tabs">
+        <button class="tab-button active" data-tab="overview">Обзор</button>
+        <button class="tab-button" data-tab="transactions">Транзакции</button>
+        <button class="tab-button" data-tab="analytics">Аналитика</button>
+        <button class="tab-button" data-tab="about">О программе</button>
+    </div>
 
-    <div class="summary-card">
-        <div class="summary-row">
-            <span>Ваш баланс: </span>
-            <span id="sum-balance">0</span>
+    <!-- Вкладка Обзор -->
+    <div id="overview" class="tab-content active">
+        <h2 class="title">Финансовый обзор</h2>
+
+        <div class="summary-card">
+            <div class="summary-row">
+                <span>Ваш баланс: </span>
+                <span id="sum-balance">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Заработали: </span>
+                <span id="sum-income">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Потратили: </span>
+                <span id="sum-expense">0</span>
+            </div>
         </div>
-        <div class="summary-row">
-            <span>Заработали: </span>
-            <span id="sum-income">0</span>
+
+        <h2 class="title">Добавить транзакцию</h2>
+
+        <div class="card">
+            <label class="label">Тип операции</label>
+            <select id="type" class="input">
+                <option value="Income">Заработал(а)</option>
+                <option value="Expense">Потратил(а)</option>
+            </select>
+
+            <label class="label">Категория</label>
+            <select id="category" class="input">
+                <option>Зарплата</option>
+                <option>Еда</option>
+                <option>Транспорт</option>
+                <option>Шоппинг</option>
+                <option>Развлечения</option>
+                <option>Остальное</option>
+            </select>
+
+            <label class="label">Сумма</label>
+            <input id="amount" type="number" class="input" placeholder="Введите сумму">
+
+            <label class="label">Описание</label>
+            <input id="description" class="input" placeholder="Описание">
+
+            <button id="addBtn" class="btn-primary">Добавить</button>
         </div>
-        <div class="summary-row">
-            <span>Потратили: </span>
-            <span id="sum-expense">0</span>
+    </div>
+
+    <!-- Вкладка Транзакции -->
+    <div id="transactions" class="tab-content">
+        <h2 class="title">Поиск & Фильтрация</h2>
+
+        <div class="card">
+            <label>Категория: </label>
+            <select id="filter-category" class="input">
+                <option value="">Все</option>
+                <option>Зарплата</option>
+                <option>Еда</option>
+                <option>Транспорт</option>
+                <option>Шоппинг</option>
+                <option>Развлечения</option>
+                <option>Остальное</option>
+            </select>
+
+            <label>Дата от:</label>
+            <input id="filter-start" class="input" type="date">
+
+            <label>Дата до:</label>
+            <input id="filter-end" class="input" type="date">
+
+            <button id="search-btn" class="btn">Поиск</button>
+            <button id="reset-btn" class="btn-secondary">Сбросить</button>
+        </div>
+
+        <h2 class="title">Список транзакций</h2>
+        <div id="transactions-list"></div>
+    </div>
+
+    <!-- Вкладка Аналитика -->
+    <div id="analytics" class="tab-content">
+        <h2 class="title">Аналитика расходов</h2>
+
+        <div class="chart-card">
+            <canvas id="expenseChart"></canvas>
+        </div>
+
+        <div class="stats-card">
+            <h3>Статистика по категориям</h3>
+            <div id="category-stats"></div>
         </div>
     </div>
 
-    <h2 class="title">Expenses Chart</h2>
-    <div class="chart-card">
-        <canvas id="expenseChart"></canvas>
+    <!-- Вкладка О программе -->
+    <div id="about" class="tab-content">
+        <h2 class="title">О программе</h2>
+
+        <div class="card">
+            <div class="about-content">
+                <h3>💰 Finance Tracker</h3>
+                <p>Простое и удобное приложение для учета личных финансов прямо в Telegram.</p>
+
+                <div class="features">
+                    <h4>Возможности:</h4>
+                    <ul>
+                        <li>📊 Отслеживание доходов и расходов</li>
+                        <li>💳 Удобное добавление транзакций</li>
+                        <li>🔍 Поиск и фильтрация операций</li>
+                        <li>📈 Визуализация расходов по категориям</li>
+                        <li>🔐 Приватность - только ваши данные</li>
+                    </ul>
+                </div>
+
+                <div class="how-to-use">
+                    <h4>Как использовать:</h4>
+                    <ol>
+                        <li>Добавляйте доходы и расходы во вкладке "Обзор"</li>
+                        <li>Просматривайте историю во вкладке "Транзакции"</li>
+                        <li>Анализируйте расходы во вкладке "Аналитика"</li>
+                    </ol>
+                </div>
+
+                <div class="support">
+                    <p><strong>💡 Совет:</strong> Регулярно добавляйте транзакции для точной статистики!</p>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <h2 class="title">Добавить транзакцию</h2>
-
-    <div class="card">
-        <label class="label">Тип операции</label>
-        <select id="type" class="input">
-            <option value="Income">Заработал(а)</option>
-            <option value="Expense">Потратил(а)</option>
-        </select>
-
-        <label class="label">Категория</label>
-        <select id="category" class="input">
-            <option>Зарплата</option>
-            <option>Еда</option>
-            <option>Транспорт</option>
-            <option>Шоппинг</option>
-            <option>Развлечения</option>
-            <option>Остальное</option>
-        </select>
-
-        <label class="label">Сумма</label>
-        <input id="amount" type="number" class="input" placeholder="Enter amount">
-
-        <label class="label">Описание</label>
-        <input id="description" class="input" placeholder="Description">
-
-        <button id="addBtn" class="btn-primary">Добавить</button>
-    </div>
-
-    <h2 class="title">Поиск & Фильтрация</h2>
-
-    <div class="card">
-        <label>Категория: </label>
-        <select id="filter-category" class="input">
-            <option value="">Все</option>
-            <option>Зарплата</option>
-            <option>Еда</option>
-            <option>Транспорт</option>
-            <option>Шоппинг</option>
-            <option>Развлечения</option>
-            <option>Остальное</option>
-        </select>
-
-        <label>Дата от:</label>
-        <input id="filter-start" class="input" type="date">
-
-        <label>Дата до:</label>
-        <input id="filter-end" class="input" type="date">
-
-        <button id="search-btn" class="btn">Поиск</button>
-    </div>
-
-    <h2 class="title">Транзакции</h2>
-
-    <div id="transactions"></div>
 
 </div>
 
@@ -96,5 +153,3 @@
 <script src="main.js"></script>
 </body>
 </html>
-
-
