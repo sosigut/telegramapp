@@ -36,18 +36,22 @@ public class TransactionController {
     @GetMapping("/search")
     public List<Transaction> search(
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end
     ) {
+        // Логируем параметры для отладки
+        System.out.println("Search params - category: " + category + ", start: " + start + ", end: " + end);
 
         LocalDateTime startDate = (start != null) ? start.atStartOfDay() : null;
-        LocalDateTime endDT = (end != null) ? end.atTime(23, 59, 59) : null;
+        LocalDateTime endDate = (end != null) ? end.atTime(23, 59, 59) : null;
 
         // "Все" → null
         if (category != null && category.trim().equalsIgnoreCase("Все")) {
             category = null;
         }
 
-        return transactionRepository.search(category, startDate, endDT);
+        List<Transaction> result = transactionRepository.search(category, startDate, endDate);
+        System.out.println("Found transactions: " + result.size());
+        return result;
     }
 }

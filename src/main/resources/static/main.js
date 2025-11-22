@@ -1,6 +1,4 @@
 const tg = window.Telegram.WebApp;
-const backendUrl = "https://telegramapp-production.up.railway.app";
-const now = new Date();
 
 tg.ready();
 tg.expand();
@@ -115,7 +113,16 @@ async function loadTransactions() {
 
 function renderTransactions(transactions) {
     const container = document.getElementById("transactions");
-    container.innerHTML = ""; // очищаем список
+    container.innerHTML = "";
+
+    if (transactions.length === 0) {
+        container.innerHTML = `
+            <div class="card" style="text-align: center; color: var(--text-light);">
+                No transactions found
+            </div>
+        `;
+        return;
+    }
 
     transactions.forEach(t => {
         const div = document.createElement("div");
@@ -148,35 +155,51 @@ document.getElementById("search-btn").onclick = async () => {
     const start = document.getElementById("filter-start").value;
     const end = document.getElementById("filter-end").value;
 
-    if (!category || category === "" || category === "Все") {
-        category = null;
+    // Для отладки
+    console.log("Search params:", { category, start, end });
+
+    let url = `${API}/search?`;
+
+    const params = new URLSearchParams();
+
+    if (category && category !== "Все") {
+        params.append('category', category);
+    }
+    if (start) {
+        params.append('start', start);
+    }
+    if (end) {
+        params.append('end', end);
     }
 
-    let url = backendUrl + "/api/transaction/search?";
-
-    if (category) url += "category=" + encodeURIComponent(category) + "&";
-    if (start) url += "start=" + start + "&";
-    if (end) url += "end=" + end;
+    url += params.toString();
 
     try {
+        console.log("Fetching URL:", url);
         const res = await fetch(url);
-        const data = await res.json();
 
-        // Гарантируем, что data массив
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("Received data:", data);
+
         const transactions = Array.isArray(data) ? data : [];
 
         if (transactions.length === 0) {
             tg.showAlert("No transactions found for the given filter");
+        } else {
+            tg.showAlert(`Found ${transactions.length} transaction(s)`);
         }
 
         renderTransactions(transactions);
         drawExpenseChart(buildExpenseStats(transactions));
     } catch (e) {
-        tg.showAlert("Search error: " + e);
+        console.error("Search error:", e);
+        tg.showAlert("Search error: " + e.message);
     }
-
 }
-
 
 async function deleteTransaction(id) {
     await fetch(`${API}/${id}`, { method: "DELETE" });

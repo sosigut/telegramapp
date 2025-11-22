@@ -14,5 +14,12 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+logging:
+  level:
+    com:
+      example:
+        repository=DEBUG:
+        controller=DEBUG:server:
+
 server:
   port: ${PORT:8081}
