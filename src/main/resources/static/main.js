@@ -154,9 +154,6 @@ document.getElementById("search-btn").onclick = async () => {
         category = null;
     }
 
-// Если выбран "All", category = null
-    if (category === "") category = null;
-
     let url = backendUrl + "/api/transaction/search?";
 
     if (category) url += "category=" + encodeURIComponent(category) + "&";
