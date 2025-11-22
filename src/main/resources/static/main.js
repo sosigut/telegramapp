@@ -6,6 +6,19 @@ tg.expand();
 // BASE URL
 const API = "https://telegramapp-production.up.railway.app/api/transaction";
 
+// Получаем ID пользователя из Telegram Web App
+const userId = tg.initDataUnsafe?.user?.id || tg.initDataUnsafe?.user?.id || 'default_user_id';
+
+console.log("User ID:", userId);
+
+// Функция для получения заголовков с userId
+function getHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId.toString()
+    };
+}
+
 document.getElementById("addBtn").onclick = addTransaction;
 
 loadTransactions();
@@ -25,12 +38,13 @@ async function addTransaction() {
 
     const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(),
         body: JSON.stringify(body)
     });
 
     if (!res.ok) {
-        tg.showAlert("Failed to add transaction: " + res.statusText);
+        const errorText = await res.text();
+        tg.showAlert("Failed to add transaction: " + errorText);
         return;
     }
 
@@ -63,7 +77,15 @@ function drawExpenseChart(categoryTotals) {
 }
 
 async function loadTransactions() {
-    const res = await fetch(API);
+    const res = await fetch(API, {
+        headers: getHeaders()
+    });
+
+    if (!res.ok) {
+        console.error("Failed to load transactions");
+        return;
+    }
+
     const data = await res.json();
 
     // Calculate summary
@@ -174,10 +196,7 @@ document.getElementById("search-btn").onclick = async () => {
 
     try {
         const res = await fetch(url, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
+            headers: getHeaders()
         });
 
         if (!res.ok) {
@@ -204,9 +223,11 @@ document.getElementById("search-btn").onclick = async () => {
 }
 
 async function deleteTransaction(id) {
-    await fetch(`${API}/${id}`, { method: "DELETE" });
+    await fetch(`${API}/${id}`, {
+        method: "DELETE",
+        headers: getHeaders()
+    });
     await loadTransactions();
 }
 
 let expenseChart = null;
-
