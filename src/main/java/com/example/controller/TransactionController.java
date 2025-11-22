@@ -1,7 +1,7 @@
 package com.example.controller;
 
 import com.example.model.Transaction;
-import com.example.repository.TransactionRepositury;
+import com.example.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -15,21 +15,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionController {
 
-    private final TransactionRepositury transactionRepositury;
+    private final TransactionRepository transactionRepository;
 
     @PostMapping
     public Transaction add(@RequestBody Transaction t){
-        return transactionRepositury.save(t);
+        return transactionRepository.save(t);
     }
 
     @GetMapping
     public List<Transaction> getAll(){
-        return transactionRepositury.findAll();
+        return transactionRepository.findAll();
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id){
-        transactionRepositury.deleteById(id);
+        transactionRepository.deleteById(id);
     }
 
     @GetMapping("/search")
@@ -37,10 +37,16 @@ public class TransactionController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
-            ) {
-        LocalDateTime startDate = start == null ? start.atStartOfDay() : null;
+    ) {
+
+        LocalDateTime startDate = (start != null) ? start.atStartOfDay() : null;
         LocalDateTime endDT = (end != null) ? end.atTime(23, 59, 59) : null;
 
-        return transactionRepositury.search(category, startDate, endDT);
+        // "Все" → null
+        if (category != null && category.trim().equalsIgnoreCase("Все")) {
+            category = null;
+        }
+
+        return transactionRepository.search(category, startDate, endDT);
     }
 }

@@ -150,6 +150,10 @@ document.getElementById("search-btn").onclick = async () => {
     const start = document.getElementById("filter-start").value;
     const end = document.getElementById("filter-end").value;
 
+    if (!category || category === "" || category === "Все") {
+        category = null;
+    }
+
 // Если выбран "All", category = null
     if (category === "") category = null;
 
