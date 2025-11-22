@@ -157,13 +157,10 @@ document.getElementById("search-btn").onclick = async () => {
 
     console.log("Search params:", { category, start, end });
 
-    let url = `${API}/search?`;
-
     const params = new URLSearchParams();
 
     if (category && category !== "Все") {
-        // Правильное кодирование для кириллицы
-        params.append('category', encodeURIComponent(category));
+        params.append('category', category);
     }
     if (start) {
         params.append('start', start);
@@ -172,11 +169,16 @@ document.getElementById("search-btn").onclick = async () => {
         params.append('end', end);
     }
 
-    url += params.toString();
+    const url = `${API}/search?${params.toString()}`;
     console.log("Final URL:", url);
 
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
 
         if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);

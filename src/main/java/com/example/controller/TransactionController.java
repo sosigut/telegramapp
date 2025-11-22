@@ -5,8 +5,10 @@ import com.example.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,24 +41,15 @@ public class TransactionController {
     public List<Transaction> search(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end
-    ) {
-        // Декодируем категорию если она закодирована
-        if (category != null) {
-            try {
-                category = URLDecoder.decode(category, StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                // ignore
-            }
-        }
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
 
-        System.out.println("Decoded search params - category: '" + category + "', start: " + start + ", end: " + end);
+        System.out.println("Raw search params - category: '" + category + "', start: " + start + ", end: " + end);
 
         LocalDateTime startDate = (start != null) ? start.atStartOfDay() : null;
         LocalDateTime endDate = (end != null) ? end.atTime(23, 59, 59) : null;
 
         // "Все" → null
-        if (category != null && (category.trim().equalsIgnoreCase("Все") || category.trim().equalsIgnoreCase("All"))) {
+        if (category != null && category.trim().equalsIgnoreCase("Все")) {
             category = null;
         }
 

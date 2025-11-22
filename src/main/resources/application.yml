@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://trolley.proxy.rlwy.net:51055/railway?sslmode=require
+    url: jdbc:postgresql://trolley.proxy.rlwy.net:51055/railway?sslmode=require&stringtype=unspecified&characterEncoding=UTF-8
     username: postgres
     password: UwiUOreOefKFWDimKjNMkiqAQeQxUzHL
     driver-class-name: org.postgresql.Driver
@@ -13,12 +13,6 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        # Настройки для UTF-8
-        connection:
-          characterEncoding: utf-8
-          CharSet: utf-8
-          useUnicode: true
-
 
 logging:
   level:
