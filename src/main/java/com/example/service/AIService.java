@@ -16,25 +16,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AIService {
 
-    @Value("${deepseek.apiKey}")
+    @Value("${deepseek.apiKey:}")
     private String apiKey;
 
-    public String analyzeTransactions(List<Transaction> transactions){
+    public String analyzeTransactions(List<Transaction> transactions) {
+        try {
+            // Проверка API ключа
+            if (apiKey == null || apiKey.isEmpty()) {
+                return generateFallbackAdvice(transactions);
+            }
 
-        if(transactions.isEmpty()){
-            return "У вас пока что нет никаких транзакций.";
-        }
+            if (transactions.isEmpty()) {
+                return "У вас пока что нет никаких транзакций.";
+            }
 
-        StringBuilder summary = new StringBuilder();
-        transactions.forEach(transaction -> summary.append(
-                String.format("%s - %s: %.2f (%s)\n",
-                        transaction.getDate().toLocalDate(),
-                        transaction.getCategory(),
-                        transaction.getAmount(),
-                        transaction.getType())
-        ));
+            StringBuilder summary = new StringBuilder();
+            transactions.forEach(transaction -> summary.append(
+                    String.format("%s - %s: %.2f (%s)\n",
+                            transaction.getDate().toLocalDate(),
+                            transaction.getCategory(),
+                            transaction.getAmount(),
+                            transaction.getType())
+            ));
 
-        String prompt = """
+            String prompt = """
                 Ты — профессиональный финансовый консультант. 
                 Вот операции пользователя:
 
@@ -54,26 +59,74 @@ public class AIService {
                 - рекомендации
                 """.formatted(summary);
 
-        RestClient client = RestClient.builder()
-                .baseUrl("https://api.deepseek.com/v1/chat/completions")
-                .defaultHeader("Authorization", "Bearer " + apiKey)
-                .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .build();
+            RestClient client = RestClient.builder()
+                    .baseUrl("https://api.deepseek.com/v1/chat/completions")
+                    .defaultHeader("Authorization", "Bearer " + apiKey)
+                    .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                    .build();
 
+            DeepSeekRequest req = new DeepSeekRequest(
+                    "deepseek-chat",
+                    new DeepSeekMessage[]{
+                            new DeepSeekMessage("user", prompt)
+                    }
+            );
 
-        DeepSeekRequest req = new DeepSeekRequest(
-                "deepseek-chat",
-                new DeepSeekMessage[]{
-                        new DeepSeekMessage("user", prompt)
-                }
-        );
+            DeepSeekResponse response = client.post()
+                    .body(req)
+                    .retrieve()
+                    .body(DeepSeekResponse.class);
 
-        DeepSeekResponse response = client.post()
-                .body(req)
-                .retrieve()
-                .body(DeepSeekResponse.class);
+            if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
+                return generateFallbackAdvice(transactions);
+            }
 
-        return response.getChoices().get(0).getMessage().getContent();
+            return response.getChoices().get(0).getMessage().getContent();
 
+        } catch (Exception e) {
+            System.out.println("AI Service error: " + e.getMessage());
+            e.printStackTrace();
+            return generateFallbackAdvice(transactions);
+        }
+    }
+
+    private String generateFallbackAdvice(List<Transaction> transactions) {
+        if (transactions.isEmpty()) {
+            return "🤖 **Финансовый анализ**\n\n" +
+                    "У вас пока нет транзакций для анализа.\n" +
+                    "Добавьте несколько доходов и расходов!";
+        }
+
+        // Простой анализ без AI
+        double totalIncome = transactions.stream()
+                .filter(t -> "Income".equals(t.getType()))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+
+        double totalExpense = transactions.stream()
+                .filter(t -> "Expense".equals(t.getType()))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+
+        double balance = totalIncome - totalExpense;
+
+        StringBuilder advice = new StringBuilder();
+        advice.append("🤖 **Анализ ваших финансов**\n\n");
+        advice.append(String.format("📈 Доходы: %.2f ₽\n", totalIncome));
+        advice.append(String.format("📉 Расходы: %.2f ₽\n", totalExpense));
+        advice.append(String.format("⚖️ Баланс: %.2f ₽\n\n", balance));
+
+        if (balance > 0) {
+            advice.append("✅ Вы живете по средствам!\n");
+        } else {
+            advice.append("⚠️ Внимание: расходы превышают доходы\n");
+        }
+
+        advice.append("\n💡 **Общие советы:**\n");
+        advice.append("• Отслеживайте все траты\n");
+        advice.append("• Создайте бюджет на месяц\n");
+        advice.append("• Откладывайте 10-20% доходов\n");
+
+        return advice.toString();
     }
 }
