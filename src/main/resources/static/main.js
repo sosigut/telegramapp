@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("addBtn").onclick = addTransaction;
     document.getElementById("search-btn").onclick = searchTransactions;
     document.getElementById("reset-btn").onclick = resetFilters;
+    document.getElementById("ai-advice-btn").onclick = getAIAdvice; // Добавлен обработчик для AI
 });
 
 // Инициализация вкладок
@@ -101,6 +102,39 @@ async function addTransaction() {
     } catch (error) {
         console.error("Error adding transaction:", error);
         tg.showAlert("Ошибка при добавлении транзакции");
+    }
+}
+
+// Функция для получения AI совета
+async function getAIAdvice() {
+    const button = document.getElementById("ai-advice-btn");
+    const adviceText = document.getElementById("ai-advice-text");
+
+    try {
+        // Показываем загрузку
+        button.disabled = true;
+        button.textContent = "Анализируем...";
+        adviceText.innerText = "AI анализирует ваши финансы...";
+
+        const res = await fetch(`${API}/ai-advice`, {
+            headers: getHeaders()
+        });
+
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const text = await res.text();
+        adviceText.innerText = text;
+
+    } catch (e) {
+        console.error("AI advice error:", e);
+        adviceText.innerText = "❌ Не удалось получить совет. Попробуйте позже.";
+        tg.showAlert("Ошибка AI: " + e.message);
+    } finally {
+        // Восстанавливаем кнопку
+        button.disabled = false;
+        button.textContent = "Получить совет от AI 💡";
     }
 }
 
@@ -389,20 +423,6 @@ async function deleteTransaction(id) {
         tg.showAlert("Ошибка при удалении транзакции");
     }
 }
-
-document.getElementById("ai-advice-btn").onclick = async () => {
-    try {
-        const res = await fetch(`${API}/ai-advice`, {
-            headers: getHeaders()
-        });
-
-        const text = await res.text();
-        document.getElementById("ai-advice-text").innerText = text;
-    } catch (e) {
-        tg.showAlert("Ошибка AI: " + e.message);
-    }
-};
-
 
 // Инициализация глобальной переменной для графика
 window.expenseChart = null;
