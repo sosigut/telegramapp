@@ -390,5 +390,19 @@ async function deleteTransaction(id) {
     }
 }
 
+document.getElementById("ai-advice-btn").onclick = async () => {
+    try {
+        const res = await fetch(`${API}/ai-advice`, {
+            headers: getHeaders()
+        });
+
+        const text = await res.text();
+        document.getElementById("ai-advice-text").innerText = text;
+    } catch (e) {
+        tg.showAlert("Ошибка AI: " + e.message);
+    }
+};
+
+
 // Инициализация глобальной переменной для графика
 window.expenseChart = null;

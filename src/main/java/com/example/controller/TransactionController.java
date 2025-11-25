@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.model.Transaction;
 import com.example.repository.TransactionRepository;
+import com.example.service.AIService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 public class TransactionController {
 
     private final TransactionRepository transactionRepository;
+    private final AIService aiService;
 
     @PostMapping
     public Transaction add(@RequestBody Transaction t, @RequestHeader("X-User-Id") Long userId){
@@ -55,4 +57,11 @@ public class TransactionController {
         System.out.println("Found transactions: " + result.size());
         return result;
     }
+
+    @GetMapping("/ai-advice")
+    public String getAIAdvice(@RequestHeader("X-User-Id") Long userId) {
+        List<Transaction> list = transactionRepository.findByUserId(userId);
+        return aiService.analyzeTransactions(list);
+    }
+
 }

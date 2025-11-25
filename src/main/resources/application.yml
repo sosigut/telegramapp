@@ -14,6 +14,9 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+deepseek:
+  apiKey: sk-a6ff1d1b475a46aa9144d171bec355c9
+
 logging:
   level:
     com:
