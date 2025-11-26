@@ -1,30 +1,48 @@
 package com.example.model;
 
-import lombok.Getter;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import java.util.List;
 
+@Data
 public class DeepSeekResponse {
+    private String id;
+    private String object;
+    private Long created;
+    private String model;
     private List<Choice> choices;
+    private Usage usage;
 
-    public List<Choice> getChoices() {
-        return choices;
-    }
-
+    @Data
     public static class Choice {
+        private Integer index;
         private Message message;
-        private Message delta; // добавляем
 
-        public Message getMessage() {
-            return message != null ? message : delta;
-        }
+        @JsonProperty("finish_reason")
+        private String finishReason;
+
+        @JsonProperty("logprobs")
+        private Object logprobs; // Может быть null
     }
 
+    @Data
     public static class Message {
         private String role;
-        @Getter
         private String content;
 
+        @JsonProperty("tool_calls")
+        private Object toolCalls; // Может быть null
+    }
+
+    @Data
+    public static class Usage {
+        @JsonProperty("prompt_tokens")
+        private Integer promptTokens;
+
+        @JsonProperty("completion_tokens")
+        private Integer completionTokens;
+
+        @JsonProperty("total_tokens")
+        private Integer totalTokens;
     }
 }
-

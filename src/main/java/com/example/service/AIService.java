@@ -4,6 +4,7 @@ import com.example.model.DeepSeekMessage;
 import com.example.model.DeepSeekRequest;
 import com.example.model.DeepSeekResponse;
 import com.example.model.Transaction;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -19,19 +20,19 @@ public class AIService {
     @Value("${deepseek.apiKey:}")
     private String apiKey;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     public String analyzeTransactions(List<Transaction> transactions) {
         try {
-            // Проверка API ключа
             if (apiKey == null || apiKey.isEmpty()) {
                 return generateFallbackAdvice(transactions);
             }
-
-            System.out.println("API KEY LOADED: " + apiKey);
 
             if (transactions.isEmpty()) {
                 return "У вас пока что нет никаких транзакций.";
             }
 
+            // Генерация сводки
             StringBuilder summary = new StringBuilder();
             transactions.forEach(transaction -> summary.append(
                     String.format("%s - %s: %.2f (%s)\n",
@@ -42,30 +43,26 @@ public class AIService {
             ));
 
             String prompt = """
-                Ты — профессиональный финансовый консультант. 
+                Ты — профессиональный финансовый консультант.
+                
                 Вот операции пользователя:
 
                 %s
 
-                Задача:
-                1) Найти категории с наибольшими расходами.
-                2) Определить, где пользователь тратит больше нормы.
-                3) Оценить регулярные и нерегулярные траты.
-                4) Посчитать примерные перерасходы.
-                5) Дать 5–8 конкретных советов, где можно экономить.
-                6) Объяснять просто и по делу.
-
-                Дай итог в формате:
+                Требуется:
                 - краткий обзор трат
                 - проблемные зоны
                 - рекомендации
+                Дай коротко, структурированно, без воды.
                 """.formatted(summary);
 
+
+            // Создание клиента DeepSeek
             RestClient client = RestClient.builder()
-                    .baseUrl("https://api.deepseek.com/chat/completions")
+                    .baseUrl("https://api.deepseek.com/v1/chat/completions")
                     .defaultHeader("Authorization", "Bearer " + apiKey)
                     .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)   // ← ДОБАВИТЬ СЮДА
+                    .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
                     .build();
 
             DeepSeekRequest req = new DeepSeekRequest(
@@ -75,63 +72,58 @@ public class AIService {
                     }
             );
 
-            DeepSeekResponse response = client.post()
+            // Получаем сырой JSON
+            String raw = client.post()
                     .body(req)
                     .retrieve()
-                    .body(DeepSeekResponse.class);
+                    .body(String.class);
 
-            if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
+            System.out.println("=== RAW DEEPSEEK RESPONSE ===");
+            System.out.println(raw);
+
+            DeepSeekResponse response = mapper.readValue(raw, DeepSeekResponse.class);
+
+            if (response.getChoices() == null || response.getChoices().isEmpty()) {
                 return generateFallbackAdvice(transactions);
             }
-
-            System.out.println("AI RAW RESPONSE: " + response);
 
             return response.getChoices().get(0).getMessage().getContent();
 
         } catch (Exception e) {
-            System.out.println("AI Service error: " + e.getMessage());
+            System.out.println("AI ERROR: " + e.getMessage());
             e.printStackTrace();
             return generateFallbackAdvice(transactions);
         }
     }
 
+    // ========== BACKUP-Функция (если AI сломался) ==========
     private String generateFallbackAdvice(List<Transaction> transactions) {
+
         if (transactions.isEmpty()) {
-            return "🤖 **Финансовый анализ**\n\n" +
-                    "У вас пока нет транзакций для анализа.\n" +
-                    "Добавьте несколько доходов и расходов!";
+            return "🤖 У вас пока нет транзакций.";
         }
 
-        // Простой анализ без AI
-        double totalIncome = transactions.stream()
+        double income = transactions.stream()
                 .filter(t -> "Income".equals(t.getType()))
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        double totalExpense = transactions.stream()
+        double expense = transactions.stream()
                 .filter(t -> "Expense".equals(t.getType()))
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        double balance = totalIncome - totalExpense;
+        return """
+                🤖 *Анализ ваших финансов (без AI)*
 
-        StringBuilder advice = new StringBuilder();
-        advice.append("🤖 **Анализ ваших финансов**\n\n");
-        advice.append(String.format("📈 Доходы: %.2f ₽\n", totalIncome));
-        advice.append(String.format("📉 Расходы: %.2f ₽\n", totalExpense));
-        advice.append(String.format("⚖️ Баланс: %.2f ₽\n\n", balance));
+                📈 Доходы: %.2f ₽
+                📉 Расходы: %.2f ₽
+                ⚖️ Баланс: %.2f ₽
 
-        if (balance > 0) {
-            advice.append("✅ Вы живете по средствам!\n");
-        } else {
-            advice.append("⚠️ Внимание: расходы превышают доходы\n");
-        }
-
-        advice.append("\n💡 **Общие советы:**\n");
-        advice.append("• Отслеживайте все траты\n");
-        advice.append("• Создайте бюджет на месяц\n");
-        advice.append("• Откладывайте 10-20% доходов\n");
-
-        return advice.toString();
+                💡 Базовые советы:
+                • Ведите бюджет
+                • Контролируйте категории расходов
+                • Храните подушку безопасности
+                """.formatted(income, expense, income - expense);
     }
 }
