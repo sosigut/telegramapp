@@ -15,7 +15,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 deepseek:
-  apiKey: sk-a6ff1d1b475a46aa9144d171bec355c9
+  apiKey: sk-2398e0e9a6f54c519d7612ebd63e589a
 
 logging:
   level:
