@@ -13,9 +13,10 @@ public class DeepSeekResponse {
 
     public static class Choice {
         private Message message;
+        private Message delta; // добавляем
 
         public Message getMessage() {
-            return message;
+            return message != null ? message : delta;
         }
     }
 
