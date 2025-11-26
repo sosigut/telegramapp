@@ -26,6 +26,8 @@ public class AIService {
                 return generateFallbackAdvice(transactions);
             }
 
+            System.out.println("API KEY LOADED: " + apiKey);
+
             if (transactions.isEmpty()) {
                 return "У вас пока что нет никаких транзакций.";
             }
@@ -63,6 +65,7 @@ public class AIService {
                     .baseUrl("https://api.deepseek.com/v1/chat/completions")
                     .defaultHeader("Authorization", "Bearer " + apiKey)
                     .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)   // ← ДОБАВИТЬ СЮДА
                     .build();
 
             DeepSeekRequest req = new DeepSeekRequest(
@@ -80,6 +83,8 @@ public class AIService {
             if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
                 return generateFallbackAdvice(transactions);
             }
+
+            System.out.println("AI RAW RESPONSE: " + response);
 
             return response.getChoices().get(0).getMessage().getContent();
 

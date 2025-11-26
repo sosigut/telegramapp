@@ -19,7 +19,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
         return findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // <<< ОБЯЗАТЕЛЬНО — иначе фильтрация ВСЕГДА будет возвращать 0 >>>
             predicates.add(cb.equal(root.get("userId"), userId));
 
             if (category != null && !category.trim().isEmpty()) {
