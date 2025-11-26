@@ -62,7 +62,7 @@ public class AIService {
                 """.formatted(summary);
 
             RestClient client = RestClient.builder()
-                    .baseUrl("https://api.deepseek.com/beta/chat/completions")
+                    .baseUrl("https://api.deepseek.com/chat/completions")
                     .defaultHeader("Authorization", "Bearer " + apiKey)
                     .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                     .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)   // ← ДОБАВИТЬ СЮДА

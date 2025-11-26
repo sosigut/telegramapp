@@ -15,7 +15,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 deepseek:
-  apiKey: sk-a6ff1d1b475a46aa9144d171bec355c9
+  apiKey: ${DEEPSEEK_APIKEY:}
 
 logging:
   level:
@@ -27,6 +27,8 @@ logging:
       hibernate:
         SQL: DEBUG
         type: TRACE
+    com.example.service: DEBUG
+
 
 server:
   port: ${PORT:8081}
