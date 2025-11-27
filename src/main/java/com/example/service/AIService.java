@@ -20,6 +20,9 @@ public class AIService {
     @Value("${deepseek.apiKey:}")
     private String apiKey;
 
+    @Value("${deepseek.baseUrl:https://api.artemox.com/v1}")
+    private String baseUrl;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     public String analyzeTransactions(List<Transaction> transactions) {
@@ -59,7 +62,7 @@ public class AIService {
 
             // Создание клиента DeepSeek
             RestClient client = RestClient.builder()
-                    .baseUrl("https://api.deepseek.com/chat/completions")
+                    .baseUrl(baseUrl + "/chat/completions") // Используем ваш кастомн
                     .defaultHeader("Authorization", "Bearer " + apiKey)
                     .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                     .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
