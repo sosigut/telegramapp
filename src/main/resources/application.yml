@@ -16,7 +16,6 @@ spring:
 
 deepseek:
   apiKey: sk-o9vS81Woh0uCL73JjpKMLg
-  baseUrl: https://api.artemox.com/v1
 
 logging:
   level:
