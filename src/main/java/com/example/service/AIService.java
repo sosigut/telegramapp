@@ -17,11 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AIService {
 
-    @Value("${deepseek.apiKey:}")
+    @Value("${deepseek.apiKey:sk-o9vS81Woh0uCL73JjpKMLg}")
     private String apiKey;
-
-    @Value("${deepseek.baseUrl:https://api.artemox.com/v1}")
-    private String baseUrl;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -59,17 +56,16 @@ public class AIService {
                 Дай коротко, структурированно, без воды.
                 """.formatted(summary);
 
-
-            // Создание клиента DeepSeek
+            // ИСПРАВЛЕННЫЙ URL - используем правильный эндпоинт LiteLLM
             RestClient client = RestClient.builder()
-                    .baseUrl(baseUrl + "/chat/completions") // Используем ваш кастомн
+                    .baseUrl("https://api.artemox.com/v1/chat/completions") // Полный URL до эндпоинта
                     .defaultHeader("Authorization", "Bearer " + apiKey)
                     .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                     .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
                     .build();
 
             DeepSeekRequest req = new DeepSeekRequest(
-                    "deepseek-chat",
+                    "deepseek-chat", // Модель должна совпадать с той, что настроена в LiteLLM
                     new DeepSeekMessage[]{
                             new DeepSeekMessage("user", prompt)
                     }
@@ -99,9 +95,7 @@ public class AIService {
         }
     }
 
-    // ========== BACKUP-Функция (если AI сломался) ==========
     private String generateFallbackAdvice(List<Transaction> transactions) {
-
         if (transactions.isEmpty()) {
             return "🤖 У вас пока нет транзакций.";
         }
