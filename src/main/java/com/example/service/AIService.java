@@ -59,7 +59,7 @@ public class AIService {
 
             // Создание клиента DeepSeek
             RestClient client = RestClient.builder()
-                    .baseUrl("https://api.deepseek.com/v1/chat/completions")
+                    .baseUrl("https://api.artemox.com/v1")
                     .defaultHeader("Authorization", "Bearer " + apiKey)
                     .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                     .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
