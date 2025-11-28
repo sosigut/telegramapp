@@ -1,17 +1,14 @@
 package com.example.service;
 
-import com.example.model.DeepSeekMessage;
-import com.example.model.DeepSeekRequest;
-import com.example.model.DeepSeekResponse;
 import com.example.model.Transaction;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +17,7 @@ public class AIService {
     @Value("${deepseek.apiKey:sk-o9vS81Woh0uCL73JjpKMLg}")
     private String apiKey;
 
+    private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
 
     public String analyzeTransactions(List<Transaction> transactions) {
@@ -32,7 +30,7 @@ public class AIService {
                 return "У вас пока что нет никаких транзакций.";
             }
 
-            // Генерация сводки
+            // Генерация сводки транзакций
             StringBuilder summary = new StringBuilder();
             transactions.forEach(transaction -> summary.append(
                     String.format("%s - %s: %.2f (%s)\n",
@@ -54,39 +52,53 @@ public class AIService {
                 - проблемные зоны
                 - рекомендации
                 Дай коротко, структурированно, без воды.
-                """.formatted(summary);
+                """.formatted(summary.toString());
 
-            // ИСПРАВЛЕННЫЙ URL - используем правильный эндпоинт LiteLLM
-            RestClient client = RestClient.builder()
-                    .baseUrl("https://api.artemox.com/v1/chat/completions") // Полный URL до эндпоинта
-                    .defaultHeader("Authorization", "Bearer " + apiKey)
-                    .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-                    .build();
+            // Создаем запрос вручную
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "deepseek-chat");
 
-            DeepSeekRequest req = new DeepSeekRequest(
-                    "deepseek-chat", // Модель должна совпадать с той, что настроена в LiteLLM
-                    new DeepSeekMessage[]{
-                            new DeepSeekMessage("user", prompt)
-                    }
+            List<Map<String, String>> messages = new ArrayList<>();
+            Map<String, String> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", prompt);
+            messages.add(message);
+
+            requestBody.put("messages", messages);
+            requestBody.put("max_tokens", 1000);
+            requestBody.put("temperature", 0.7);
+
+            // Создаем заголовки
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+            headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            // Отправляем запрос
+            String url = "https://api.artemox.com/v1/chat/completions";
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
             );
 
-            // Получаем сырой JSON
-            String raw = client.post()
-                    .body(req)
-                    .retrieve()
-                    .body(String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                // Парсим ответ
+                Map<String, Object> responseMap = mapper.readValue(response.getBody(), Map.class);
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
 
-            System.out.println("=== RAW DEEPSEEK RESPONSE ===");
-            System.out.println(raw);
-
-            DeepSeekResponse response = mapper.readValue(raw, DeepSeekResponse.class);
-
-            if (response.getChoices() == null || response.getChoices().isEmpty()) {
-                return generateFallbackAdvice(transactions);
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> firstChoice = choices.get(0);
+                    Map<String, String> messageResponse = (Map<String, String>) firstChoice.get("message");
+                    return messageResponse.get("content");
+                }
             }
 
-            return response.getChoices().get(0).getMessage().getContent();
+            return generateFallbackAdvice(transactions);
 
         } catch (Exception e) {
             System.out.println("AI ERROR: " + e.getMessage());
