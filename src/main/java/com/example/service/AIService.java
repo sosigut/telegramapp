@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +23,13 @@ public class AIService {
 
     public String analyzeTransactions(List<Transaction> transactions) {
         try {
+            // ДЕБАГ ЛОГИ
+            System.out.println("=== AI SERVICE DEBUG ===");
+            System.out.println("API Key present: " + (apiKey != null && !apiKey.isEmpty()));
+            System.out.println("Transactions count: " + transactions.size());
+
             if (apiKey == null || apiKey.isEmpty()) {
+                System.out.println("API Key is empty, using fallback");
                 return generateFallbackAdvice(transactions);
             }
 
@@ -54,6 +61,8 @@ public class AIService {
                 Дай коротко, структурированно, без воды.
                 """.formatted(summary.toString());
 
+            System.out.println("Sending request to DeepSeek API...");
+
             // Создаем запрос вручную
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", "deepseek-chat");
@@ -79,12 +88,18 @@ public class AIService {
             // Отправляем запрос
             String url = "https://api.artemox.com/v1/chat/completions";
 
+            System.out.println("URL: " + url);
+            System.out.println("Headers: " + headers);
+
             ResponseEntity<String> response = restTemplate.exchange(
                     url,
                     HttpMethod.POST,
                     entity,
                     String.class
             );
+
+            System.out.println("Response Status: " + response.getStatusCode());
+            System.out.println("Response Body: " + (response.getBody() != null ? response.getBody().substring(0, Math.min(200, response.getBody().length())) + "..." : "NULL"));
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 // Парсим ответ
@@ -94,8 +109,15 @@ public class AIService {
                 if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> firstChoice = choices.get(0);
                     Map<String, String> messageResponse = (Map<String, String>) firstChoice.get("message");
-                    return messageResponse.get("content");
+                    String content = messageResponse.get("content");
+
+                    System.out.println("AI Response successful: " + content.substring(0, Math.min(100, content.length())) + "...");
+                    return content;
+                } else {
+                    System.out.println("No choices in response");
                 }
+            } else {
+                System.out.println("HTTP Error: " + response.getStatusCode());
             }
 
             return generateFallbackAdvice(transactions);
@@ -108,6 +130,8 @@ public class AIService {
     }
 
     private String generateFallbackAdvice(List<Transaction> transactions) {
+        System.out.println("Using fallback advice");
+
         if (transactions.isEmpty()) {
             return "🤖 У вас пока нет транзакций.";
         }
@@ -122,17 +146,53 @@ public class AIService {
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        return """
-                🤖 *Анализ ваших финансов (без AI)*
+        double balance = income - expense;
 
-                📈 Доходы: %.2f ₽
-                📉 Расходы: %.2f ₽
-                ⚖️ Баланс: %.2f ₽
+        // Улучшенный анализ по категориям
+        Map<String, Double> expenseByCategory = transactions.stream()
+                .filter(t -> "Expense".equals(t.getType()))
+                .collect(Collectors.groupingBy(
+                        Transaction::getCategory,
+                        Collectors.summingDouble(Transaction::getAmount)
+                ));
 
-                💡 Базовые советы:
-                • Ведите бюджет
-                • Контролируйте категории расходов
-                • Храните подушку безопасности
-                """.formatted(income, expense, income - expense);
+        StringBuilder analysis = new StringBuilder();
+        analysis.append("🤖 *Финансовый анализ*\n\n");
+
+        analysis.append("💰 **Баланс:**\n");
+        analysis.append(String.format("• Доходы: %.2f ₽\n", income));
+        analysis.append(String.format("• Расходы: %.2f ₽\n", expense));
+        analysis.append(String.format("• Итого: %.2f ₽\n\n", balance));
+
+        if (!expenseByCategory.isEmpty()) {
+            analysis.append("📊 **Расходы по категориям:**\n");
+            expenseByCategory.entrySet().stream()
+                    .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                    .forEach(entry -> {
+                        double percentage = expense > 0 ? (entry.getValue() / expense) * 100 : 0;
+                        analysis.append(String.format("• %s: %.2f ₽ (%.1f%%)\n",
+                                entry.getKey(), entry.getValue(), percentage));
+                    });
+            analysis.append("\n");
+        }
+
+        // Умные рекомендации
+        analysis.append("💡 **Рекомендации:**\n");
+
+        if (balance < 0) {
+            analysis.append("⚠️  ВНИМАНИЕ: Расходы превышают доходы!\n");
+            analysis.append("• Срочно сократите траты\n");
+            analysis.append("• Пересмотрите бюджет\n");
+        } else if (expense > income * 0.7) {
+            analysis.append("📝 Высокий уровень расходов\n");
+            analysis.append("• Оптимизируйте основные категории трат\n");
+            analysis.append("• Создайте финансовую подушку\n");
+        } else {
+            analysis.append("✅ Отличный финансовый контроль!\n");
+            analysis.append("• Продолжайте отслеживать расходы\n");
+            analysis.append("• Рассмотрите возможность инвестиций\n");
+        }
+
+        return analysis.toString();
     }
 }
