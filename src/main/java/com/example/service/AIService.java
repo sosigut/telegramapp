@@ -14,7 +14,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AIService {
 
-    @Value("${deepseek.apiKey:sk-o9vS81Woh0uCL73JjpKMLg}")
+    @Value("${deepseek.apiKey:sk-o9vS81Woh0uCL73JjpKWLg}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
